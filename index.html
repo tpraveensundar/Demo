@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo To-Do</title>
+  <style>
+    :root { --bg: #f6f7f9; --card: #fff; --text: #1d2430; --muted: #6b7480; --accent: #3b6cf6; --border: #e2e5ea; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #14171c; --card: #1d2128; --text: #e7eaef; --muted: #9aa3ae; --accent: #6d93ff; --border: #2c323b; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 48px 16px; }
+    main { width: 100%; max-width: 480px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    h1 { margin: 0 0 16px; font-size: 1.5rem; }
+    form { display: flex; gap: 8px; }
+    input[type=text] { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: inherit; font-size: 1rem; }
+    button { padding: 10px 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-size: 1rem; cursor: pointer; }
+    ul { list-style: none; padding: 0; margin: 16px 0 0; }
+    li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    li.done span { text-decoration: line-through; color: var(--muted); }
+    li span { flex: 1; }
+    li button { background: transparent; color: var(--muted); padding: 4px 8px; }
+    footer { margin-top: 12px; color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>To-Do List</h1>
+    <form id="add-form">
+      <input id="new-task" type="text" placeholder="What needs doing?" autocomplete="off" required>
+      <button type="submit">Add</button>
+    </form>
+    <ul id="list"></ul>
+    <footer id="count"></footer>
+  </main>
+
+  <script>
+    const KEY = 'demo-todos';
+    let todos = [];
+    try { todos = JSON.parse(localStorage.getItem(KEY)) || []; } catch {}
+
+    const list = document.getElementById('list');
+    const count = document.getElementById('count');
+
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(todos)); } catch {}
+    }
+
+    function render() {
+      list.innerHTML = '';
+      todos.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.className = t.done ? 'done' : '';
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.checked = t.done;
+        box.onchange = () => { t.done = box.checked; save(); render(); };
+
+        const text = document.createElement('span');
+        text.textContent = t.text;
+
+        const del = document.createElement('button');
+        del.textContent = '✕';
+        del.title = 'Delete';
+        del.onclick = () => { todos.splice(i, 1); save(); render(); };
+
+        li.append(box, text, del);
+        list.append(li);
+      });
+      const left = todos.filter(t => !t.done).length;
+      count.textContent = todos.length ? `${left} of ${todos.length} remaining` : 'Nothing to do yet.';
+    }
+
+    document.getElementById('add-form').onsubmit = (e) => {
+      e.preventDefault();
+      const input = document.getElementById('new-task');
+      const text = input.value.trim();
+      if (!text) return;
+      todos.push({ text, done: false });
+      input.value = '';
+      save();
+      render();
+    };
+
+    render();
+  </script>
+</body>
+</html>
