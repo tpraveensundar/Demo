@@ -21,7 +21,9 @@
     li.done span { text-decoration: line-through; color: var(--muted); }
     li span { flex: 1; }
     li button { background: transparent; color: var(--muted); padding: 4px 8px; }
-    footer { margin-top: 12px; color: var(--muted); font-size: 0.9rem; }
+    footer { margin-top: 12px; color: var(--muted); font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    #clear { background: transparent; color: var(--accent); padding: 4px 0; font-size: 0.9rem; }
+    #clear[hidden] { display: none; }
   </style>
 </head>
 <body>
@@ -32,7 +34,10 @@
       <button type="submit">Add</button>
     </form>
     <ul id="list"></ul>
-    <footer id="count"></footer>
+    <footer>
+      <span id="count"></span>
+      <button id="clear" type="button" hidden>Clear completed</button>
+    </footer>
   </main>
 
   <script>
@@ -42,6 +47,7 @@
 
     const list = document.getElementById('list');
     const count = document.getElementById('count');
+    const clear = document.getElementById('clear');
 
     function save() {
       try { localStorage.setItem(KEY, JSON.stringify(todos)); } catch {}
@@ -71,6 +77,7 @@
       });
       const left = todos.filter(t => !t.done).length;
       count.textContent = todos.length ? `${left} of ${todos.length} remaining` : 'Nothing to do yet.';
+      clear.hidden = left === todos.length;
     }
 
     document.getElementById('add-form').onsubmit = (e) => {
@@ -80,6 +87,12 @@
       if (!text) return;
       todos.push({ text, done: false });
       input.value = '';
+      save();
+      render();
+    };
+
+    clear.onclick = () => {
+      todos = todos.filter(t => !t.done);
       save();
       render();
     };
